@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0e12">
+<title>DUALSYNC</title>
+<style>
+/* ===== Token warna: biru-ungu = kamu, hijau = teman ===== */
+:root{--bg:#0d0e12;--sf:#16181f;--in:#0f1015;--ln:#262a35;--tx:#eceef3;--mu:#8a90a0;--me:#7b6cff;--pe:#22d4a0;--bad:#ff5d6c;--warn:#ffb54a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.screen{display:none;min-height:100%;flex-direction:column;gap:14px;padding:20px;max-width:480px;margin:0 auto}
+.screen.on{display:flex}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:20px;padding:16px}
+input{width:100%;padding:14px;border-radius:12px;border:1px solid var(--ln);background:var(--in);color:var(--tx);font-size:16px;outline:0}
+input:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--me);outline-offset:2px}
+label{display:block;color:var(--mu);font-size:13px;margin:10px 0 6px}
+button{font:inherit;cursor:pointer}
+.btn{width:100%;border:0;border-radius:14px;padding:15px;font-weight:700;color:#fff;background:var(--me)}
+.btn.alt{background:var(--sf);border:1px solid var(--ln)}
+.btn:active{transform:scale(.98)}
+.chip{align-self:flex-start;font-size:13px;padding:5px 12px;border-radius:99px;border:1px solid var(--ln);color:var(--mu)}
+.chip::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--mu)}
+.chip.ok::before{background:var(--pe)}.chip.bad::before{background:var(--bad)}
+/* ===== Beranda ===== */
+#home{justify-content:center}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.brand h1{margin:0;font-size:32px;font-weight:800;letter-spacing:.04em}
+.row{display:flex;gap:10px}.row input{flex:1;text-transform:uppercase;letter-spacing:.2em;text-align:center}.row .btn{width:auto;padding:0 22px}
+details summary{color:var(--mu);cursor:pointer;font-size:14px;padding:4px 0}
+.hint{color:var(--mu);font-size:12px;margin:8px 0 0}
+/* ===== Panggilan ===== */
+.top{display:flex;justify-content:space-between;align-items:center}
+#rc{background:var(--sf);border:1px solid var(--ln);color:var(--tx);border-radius:12px;padding:8px 14px;font-weight:700;letter-spacing:.2em}
+#tm{font-variant-numeric:tabular-nums;color:var(--mu)}
+.peers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.peer{text-align:center;padding:22px 10px}
+.av{width:88px;height:88px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:34px;font-weight:700;color:#fff;transition:box-shadow .2s}
+#p0 .av{background:var(--me)}#p1 .av{background:var(--pe);color:#06231a}
+#p0.talk .av{box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--me),0 0 28px var(--me)}
+#p1.talk .av{box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--pe),0 0 28px var(--pe)}
+.peer small{color:var(--mu);display:block;min-height:1.4em}
+#st{text-align:center;color:var(--mu)}#st.ok{color:var(--pe)}#st.warn{color:var(--warn)}
+.soon{color:var(--mu);font-size:14px;text-align:center}
+.ctl{display:flex;justify-content:center;gap:22px;margin-top:auto;padding:10px 0}
+.ctl div{text-align:center;font-size:12px;color:var(--mu)}
+.rb{width:64px;height:64px;border-radius:50%;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font-size:24px;margin-bottom:6px}
+.rb.off{background:var(--bad);border-color:var(--bad)}.rb.end{background:var(--bad);border-color:var(--bad)}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));background:#2a2d3a;border:1px solid var(--ln);padding:12px 16px;border-radius:14px;opacity:0;pointer-events:none;transition:opacity .25s;max-width:448px;margin:0 auto;z-index:9}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ BERANDA ============ -->
+<main class="screen on" id="home">
+  <div class="brand">
+    <!-- Logo: dua lingkaran bertumpuk = dua suara yang sinkron -->
+    <svg width="54" height="40" viewBox="0 0 54 40" aria-hidden="true">
+      <circle cx="19" cy="20" r="15" fill="none" stroke="#7b6cff" stroke-width="5"/>
+      <circle cx="35" cy="20" r="15" fill="none" stroke="#22d4a0" stroke-width="5"/>
+    </svg>
+    <h1>DUALSYNC</h1>
+  </div>
+  <span class="chip" id="net">Cek koneksi…</span>
+
+  <div class="card">
+    <label for="name" style="margin-top:0">Namamu</label>
+    <input id="name" maxlength="20" placeholder="Contoh: Intan" autocomplete="nickname">
+    <button class="btn" id="bCreate" style="margin-top:14px">Buat room</button>
+  </div>
+
+  <div class="card">
+    <label for="code" style="margin-top:0">Punya kode dari teman?</label>
+    <div class="row">
+      <input id="code" maxlength="6" placeholder="KODE" autocapitalize="characters" autocomplete="off">
+      <button class="btn alt" id="bJoin">Gabung</button>
+    </div>
+  </div>
+
+  <details class="card" id="set">
+    <summary>Pengaturan server</summary>
+    <label for="sWs">Server signaling (wss://)</label>
+    <input id="sWs" placeholder="wss://nama-server.example.com" autocapitalize="off" autocorrect="off">
+    <label for="sTurn">TURN (opsional, pisahkan dengan koma)</label>
+    <input id="sTurn" placeholder="turn:host:3478,turns:host:5349" autocapitalize="off">
+    <label for="sTu">Username TURN</label><input id="sTu" autocapitalize="off">
+    <label for="sTc">Password TURN</label><input id="sTc" type="password" autocapitalize="off">
+    <p class="hint">Tersimpan di perangkat ini. Kedua HP harus memakai server signaling yang sama dan membuka halaman lewat HTTPS.</p>
+  </details>
+</main>
+
+<!-- ============ PANGGILAN ============ -->
+<main class="screen" id="call">
+  <div class="top">
+    <button id="rc" title="Salin kode room" aria-label="Salin kode room">------</button>
+    <span id="tm">00:00</span>
+  </div>
+  <div class="peers">
+    <div class="card peer" id="p0"><div class="av" id="av0">?</div><b id="n0">Kamu</b><small id="s0"></small></div>
+    <div class="card peer" id="p1"><div class="av" id="av1">?</div><b id="n1">Menunggu…</b><small id="s1"></small></div>
+  </div>
+  <div id="st">Menyambung…</div>
+  <div class="card soon">Pemutar musik bersama dan ducking otomatis hadir di tahap berikutnya.</div>
+  <div class="ctl">
+    <div><button class="rb" id="bMute" aria-label="Mute mikrofon">🎙</button><br>Mikrofon</div>
+    <div><button class="rb" id="bSpk" aria-label="Matikan suara teman">🔊</button><br>Speaker</div>
+    <div><button class="rb end" id="bEnd" aria-label="Keluar dari room">✕</button><br>Keluar</div>
+  </div>
+</main>
+
+<audio id="remote" autoplay playsinline></audio>
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   DUALSYNC – Tahap 1: UI, room, signaling WebSocket, voice call WebRTC.
+   Alur: host (pembuat room) membuat offer saat teman bergabung;
+   joiner menjawab. Semua pesan SDP/ICE lewat server signaling.
+   S.speaking.{me,peer} disiapkan untuk ducking di tahap berikutnya.
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const K = {ws:'ds_ws', turn:'ds_turn', tu:'ds_tu', tc:'ds_tc', name:'ds_name'};
+const getC = k => { try { return localStorage.getItem(K[k]) || ''; } catch { return ''; } };
+const putC = (k, v) => { try { localStorage.setItem(K[k], v); } catch {} };
+
+const S = {};   // state sesi; ctx (AudioContext) sengaja bertahan antar sesi
+function resetState(){
+  Object.assign(S, {ws:null, pc:null, local:null, code:null, host:false, name:'', peer:'',
+    muted:false, t0:0, retry:0, leaving:false, pending:[], vad:{}, speaking:{me:false, peer:false}});
+}
+resetState();
+
+/* ---------- UI helper ---------- */
+let tt;
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),4500); }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id)); }
+function status(t, c){ const e=$('#st'); e.textContent=t; e.className=c||''; }
+function net(){ const on=navigator.onLine, c=$('#net'); c.textContent=on?'Online':'Offline'; c.className='chip '+(on?'ok':'bad'); }
+addEventListener('online',net); addEventListener('offline',net); net();
+function setPeer(n){ S.peer=n||''; $('#n1').textContent=n||'Menunggu…'; $('#av1').textContent=n?n[0].toUpperCase():'?'; }
+
+/* ---------- Pengaturan tersimpan ---------- */
+[['sWs','ws'],['sTurn','turn'],['sTu','tu'],['sTc','tc']].forEach(([id,k])=>{
+  const el=$('#'+id); el.value=getC(k); el.addEventListener('input',()=>putC(k,el.value.trim()));
+});
+$('#name').value=getC('name');
+
+/* ---------- Mikrofon ---------- */
+async function getMic(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)
+    throw new Error('Mikrofon butuh HTTPS (atau localhost). Buka halaman lewat alamat https://');
+  try{
+    return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1},video:false});
+  }catch(e){
+    throw new Error(e.name==='NotAllowedError'?'Izin mikrofon ditolak. Aktifkan lewat pengaturan browser.':'Mikrofon tidak bisa dipakai ('+e.name+')');
+  }
+}
+function actx(){
+  if(!S.ctx) S.ctx=new (window.AudioContext||window.webkitAudioContext)();
+  if(S.ctx.state==='suspended') S.ctx.resume();
+  return S.ctx;
+}
+
+/* ---------- Indikator bicara (VAD sederhana berbasis RMS) ---------- */
+function watch(stream, who){
+  const an=actx().createAnalyser(); an.fftSize=512;
+  actx().createMediaStreamSource(stream).connect(an);   // hanya dianalisis, tidak diputar ulang
+  const buf=new Uint8Array(an.fftSize), card=$(who==='me'?'#p0':'#p1');
+  clearInterval(S.vad[who]);
+  S.vad[who]=setInterval(()=>{
+    an.getByteTimeDomainData(buf);
+    let s=0; for(const v of buf){ const x=(v-128)/128; s+=x*x; }
+    const on=Math.sqrt(s/buf.length)>0.04 && !(who==='me'&&S.muted);
+    S.speaking[who]=on; card.classList.toggle('talk',on);
+  },100);
+}
+
+/* ---------- Signaling WebSocket ---------- */
+/* Alamat signaling: isian pengaturan, atau otomatis host yang sama bila halaman dibuka lewat server.js */
+const wsUrl = () => getC('ws') || (location.protocol==='https:' ? 'wss://'+location.host : '');
+const send = o => { if(S.ws&&S.ws.readyState===1) S.ws.send(JSON.stringify(o)); };
+
+function openWS(){
+  return new Promise((res,rej)=>{
+    const url=wsUrl();
+    if(!/^wss?:\/\//i.test(url)) return rej(new Error('Isi alamat server signaling (wss://…) di Pengaturan server.'));
+    let ws, opened=false;
+    try{ ws=new WebSocket(url); }catch(e){ return rej(new Error('Alamat server tidak valid')); }
+    S.ws=ws;
+    ws.onopen=()=>{ opened=true; S.retry=0; res(); };
+    ws.onmessage=e=>{ let m; try{ m=JSON.parse(e.data); }catch{ return; } onMsg(m); };
+    ws.onclose=()=>{
+      if(ws!==S.ws) return;                       // socket lama, abaikan
+      if(!opened) return rej(new Error('Tidak bisa terhubung ke server signaling'));
+      if(!S.leaving&&S.code) reconnect();
+    };
+    ws.onerror=()=>{};
+  });
+}
+/* Reconnect otomatis dengan jeda bertahap; bergabung ulang ke kode yang sama */
+function reconnect(){
+  if(S.leaving||!S.code) return;
+  status('Menyambung ulang ke server…','warn');
+  S.wt=setTimeout(async()=>{
+    try{ await openWS(); send({type:'join',name:S.name,code:S.code}); }
+    catch{ S.retry++; reconnect(); }
+  }, Math.min(1000*2**S.retry, 8000));
+}
+
+function onMsg(m){
+  switch(m.type){
+    case 'created': S.code=m.code; enterCall(); break;
+    case 'joined':
+      S.code=m.code; if(m.peer) setPeer(m.peer); enterCall();
+      status(S.pc&&S.pc.connectionState==='connected'?'Terhubung':m.peer?'Menghubungkan…':'Menunggu teman…', S.pc&&S.pc.connectionState==='connected'?'ok':'');
+      if(S.host&&m.peer&&(!S.pc||S.pc.connectionState!=='connected')) startFresh();
+      break;
+    case 'peer-joined':
+      setPeer(m.name); status('Teman bergabung, menghubungkan…');
+      if(S.host) startFresh();
+      break;
+    case 'peer-left': status('Teman terputus dari server','warn'); break;
+    case 'signal': onSig(m.data); break;
+    case 'error': toast(m.message||'Terjadi kesalahan'); hangup(); break;
+  }
+}
+
+/* ---------- WebRTC ---------- */
+function makePC(){
+  if(S.pc){ S.pc.onconnectionstatechange=null; S.pc.close(); }
+  S.pending=[];
+  const ice=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
+  const turn=getC('turn');
+  if(turn) ice.push({urls:turn.split(',').map(s=>s.trim()).filter(Boolean),username:getC('tu'),credential:getC('tc')});
+  const pc=new RTCPeerConnection({iceServers:ice});
+  S.pc=pc;
+  S.local.getTracks().forEach(t=>pc.addTrack(t,S.local));
+  pc.onicecandidate=e=>{ if(e.candidate) send({type:'signal',data:{candidate:e.candidate}}); };
+  pc.ontrack=e=>{
+    const a=$('#remote'); a.srcObject=e.streams[0];
+    a.play().catch(()=>toast('Ketuk layar untuk mengaktifkan suara teman'));
+    watch(e.streams[0],'peer');   // stream tetap terpasang ke <audio> agar Chrome mengalirkan datanya
+  };
+  pc.onconnectionstatechange=()=>{
+    if(pc!==S.pc) return;
+    const st=pc.connectionState;
+    if(st==='connected'){ clearTimeout(S.rt); status('Terhubung','ok'); startTimer(); }
+    else if(st==='connecting') status('Menghubungkan…');
+    else if(st==='disconnected'){ status('Koneksi tidak stabil…','warn'); S.rt=setTimeout(restartIce,3000); }
+    else if(st==='failed'){ status('Koneksi gagal, mencoba lagi…','warn'); restartIce(); }
+  };
+  return pc;
+}
+async function offer(iceRestart, fresh){
+  const pc=S.pc; if(!pc) return;
+  const o=await pc.createOffer({iceRestart:!!iceRestart});
+  await pc.setLocalDescription(o);
+  send({type:'signal',data:{sdp:pc.localDescription,fresh:!!fresh}});
+}
+async function startFresh(){ try{ makePC(); await offer(false,true); }catch(e){ status('Gagal memulai panggilan: '+e.message,'warn'); } }
+function restartIce(){
+  if(!S.pc) return;
+  if(S.host) offer(true,false).catch(()=>{});
+  else send({type:'signal',data:{restart:true}});     // joiner meminta host memulai ulang ICE
+}
+async function flush(){ while(S.pending.length) await S.pc.addIceCandidate(S.pending.shift()).catch(()=>{}); }
+
+async function onSig(d){
+  try{
+    if(d.restart){ if(S.host) await offer(true,false); return; }
+    if(d.sdp){
+      if(d.sdp.type==='offer'){
+        if(d.fresh||!S.pc) makePC();
+        await S.pc.setRemoteDescription(d.sdp); await flush();
+        const a=await S.pc.createAnswer(); await S.pc.setLocalDescription(a);
+        send({type:'signal',data:{sdp:S.pc.localDescription}});
+      }else if(S.pc){ await S.pc.setRemoteDescription(d.sdp); await flush(); }
+    }else if(d.candidate){
+      if(S.pc&&S.pc.remoteDescription) await S.pc.addIceCandidate(d.candidate).catch(()=>{});
+      else S.pending.push(d.candidate);                // simpan sampai SDP remote diterima
+    }
+  }catch(e){ console.error(e); status('Gagal negosiasi: '+e.message,'warn'); }
+}
+
+/* ---------- Alur sesi ---------- */
+async function start(mode){
+  if(S.ws) return;                                      // cegah klik ganda
+  const name=($('#name').value.trim()||'Aku').slice(0,20); putC('name',name);
+  const code=$('#code').value.trim().toUpperCase();
+  if(mode==='join'&&code.length<4) return toast('Masukkan kode room dari temanmu.');
+  if(!/^wss?:\/\//i.test(wsUrl())){ $('#set').open=true; return toast('Isi alamat server signaling dulu.'); }
+  try{
+    resetState(); S.name=name; S.host=mode==='create';
+    S.local=await getMic();                             // izin mikrofon diminta saat ketukan pengguna
+    actx();
+    await openWS();
+    send(mode==='create'?{type:'create',name}:{type:'join',name,code});
+  }catch(e){ toast(e.message||'Gagal memulai'); hangup(); }
+}
+function enterCall(){
+  if($('#call').classList.contains('on')) return;
+  show('call'); $('#rc').textContent=S.code; $('#n0').textContent=S.name; $('#av0').textContent=S.name[0].toUpperCase();
+  $('#tm').textContent='00:00'; setPeer(S.peer); status(S.host?'Menunggu teman…':'Menghubungkan…');
+  watch(S.local,'me');
+}
+function startTimer(){
+  if(S.t0) return; S.t0=Date.now();
+  S.timer=setInterval(()=>{
+    const s=Math.floor((Date.now()-S.t0)/1000), h=Math.floor(s/3600), p=n=>String(n).padStart(2,'0');
+    $('#tm').textContent=(h?h+':':'')+p(Math.floor(s%3600/60))+':'+p(s%60);
+  },1000);
+}
+function hangup(){
+  S.leaving=true;
+  try{ send({type:'leave'}); if(S.ws) S.ws.close(); }catch{}
+  if(S.pc){ S.pc.onconnectionstatechange=null; S.pc.close(); }
+  if(S.local) S.local.getTracks().forEach(t=>t.stop());
+  Object.values(S.vad).forEach(clearInterval); clearInterval(S.timer); clearTimeout(S.rt); clearTimeout(S.wt);
+  const a=$('#remote'); a.srcObject=null; a.muted=false;
+  ['#p0','#p1'].forEach(i=>$(i).classList.remove('talk'));
+  $('#bMute').classList.remove('off'); $('#bSpk').classList.remove('off');
+  resetState(); show('home');
+}
+
+/* ---------- Tombol ---------- */
+$('#bCreate').onclick=()=>start('create');
+$('#bJoin').onclick=()=>start('join');
+$('#bEnd').onclick=hangup;
+$('#bMute').onclick=()=>{
+  S.muted=!S.muted;
+  S.local.getAudioTracks().forEach(t=>t.enabled=!S.muted);
+  $('#bMute').classList.toggle('off',S.muted); $('#bMute').textContent=S.muted?'🔇':'🎙';
+  $('#s0').textContent=S.muted?'Mikrofon mati':'';
+};
+$('#bSpk').onclick=()=>{
+  const a=$('#remote'); a.muted=!a.muted; a.play().catch(()=>{});
+  $('#bSpk').classList.toggle('off',a.muted); $('#bSpk').textContent=a.muted?'🔈':'🔊';
+};
+$('#rc').onclick=async()=>{
+  try{ await navigator.clipboard.writeText(S.code); toast('Kode room disalin'); }
+  catch{ toast('Kode room: '+S.code); }
+};
+document.addEventListener('click',()=>{ const a=$('#remote'); if(a.srcObject&&a.paused) a.play().catch(()=>{}); });
+</script>
+</body>
+</html>
